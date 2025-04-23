@@ -340,12 +340,10 @@ export function ContentDialog({ isOpen, onClose, onAddContent, selectedDate }: C
 }
 
 interface DayViewProps {
-  date: Date
   contentItems: ContentItem[]
-  onAddContent: (date: Date) => void
 }
 
-export function DayView({ date, contentItems, onAddContent }: DayViewProps) {
+export function DayView({ contentItems }: DayViewProps) {
   return (
     <div className="space-y-4">
       <div className="grid gap-4">

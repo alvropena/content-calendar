@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { Facebook, Instagram, Twitter, Youtube, Twitch, Linkedin, MessageSquare } from "lucide-react"
+import type { ReactElement } from "react"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -28,7 +29,7 @@ export function getPlatformColor(platform: string): string {
   }
 }
 
-export function getPlatformIcon(platform: string) {
+export function getPlatformIcon(platform: string): ReactElement {
   switch (platform.toLowerCase()) {
     case "instagram":
       return <Instagram className="h-3 w-3" />
