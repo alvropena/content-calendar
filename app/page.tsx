@@ -1,101 +1,208 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState } from "react"
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isToday,
+  parseISO,
+  startOfWeek,
+  endOfWeek,
+  isSameDay,
+  addMonths,
+  subMonths,
+  addWeeks,
+  subWeeks,
+  addYears,
+  subYears,
+  addDays,
+} from "date-fns"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { CalendarDay } from "@/components/calendar-day"
+import { ContentDialog } from "@/components/content-dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DayView } from "@/components/day-view"
+import { WeekView } from "@/components/week-view"
+import { YearView } from "@/components/year-view"
+import type { ContentItem } from "@/lib/types"
+
+type CalendarView = "day" | "week" | "month" | "year"
+
+export default function ContentCalendarPage() {
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [contentItems, setContentItems] = useState<ContentItem[]>([])
+  const [currentView, setCurrentView] = useState<CalendarView>("month")
+
+  const handlePrevious = () => {
+    switch (currentView) {
+      case "day":
+        setCurrentDate(addDays(currentDate, -1))
+        break
+      case "week":
+        setCurrentDate(subWeeks(currentDate, 1))
+        break
+      case "month":
+        setCurrentDate(subMonths(currentDate, 1))
+        break
+      case "year":
+        setCurrentDate(subYears(currentDate, 1))
+        break
+    }
+  }
+
+  const handleNext = () => {
+    switch (currentView) {
+      case "day":
+        setCurrentDate(addDays(currentDate, 1))
+        break
+      case "week":
+        setCurrentDate(addWeeks(currentDate, 1))
+        break
+      case "month":
+        setCurrentDate(addMonths(currentDate, 1))
+        break
+      case "year":
+        setCurrentDate(addYears(currentDate, 1))
+        break
+    }
+  }
+
+  const handleDayClick = (date: Date) => {
+    setSelectedDate(date)
+    setIsDialogOpen(true)
+  }
+
+  const handleAddContent = (content: ContentItem) => {
+    setContentItems([...contentItems, content])
+    setIsDialogOpen(false)
+  }
+
+  const getContentForDate = (date: Date) => {
+    return contentItems.filter((content) => {
+      const contentDate = parseISO(content.date)
+      return isSameDay(contentDate, date)
+    })
+  }
+
+  const getViewTitle = () => {
+    switch (currentView) {
+      case "day":
+        return format(currentDate, "MMMM d, yyyy")
+      case "week":
+        const weekStart = startOfWeek(currentDate)
+        const weekEnd = endOfWeek(currentDate)
+        return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`
+      case "month":
+        return format(currentDate, "MMMM yyyy")
+      case "year":
+        return format(currentDate, "yyyy")
+      default:
+        return ""
+    }
+  }
+
+  // Month view specific
+  const monthStart = startOfMonth(currentDate)
+  const monthEnd = endOfMonth(currentDate)
+  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+        <h1 className="text-2xl font-bold">Content Calendar</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <Select value={currentView} onValueChange={(value) => setCurrentView(value as CalendarView)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select view" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="day">Day</SelectItem>
+              <SelectItem value="week">Week</SelectItem>
+              <SelectItem value="month">Month</SelectItem>
+              <SelectItem value="year">Year</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={handlePrevious}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <h2 className="text-lg font-semibold whitespace-nowrap">{getViewTitle()}</h2>
+            <Button variant="outline" size="icon" onClick={handleNext}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {currentView === "day" && (
+        <DayView
+          date={currentDate}
+          contentItems={contentItems.filter((item) => {
+            const itemDate = parseISO(item.date)
+            return isSameDay(itemDate, currentDate)
+          })}
+          onAddContent={handleDayClick}
+        />
+      )}
+
+      {currentView === "week" && (
+        <WeekView date={currentDate} contentItems={contentItems} onAddContent={handleDayClick} />
+      )}
+
+      {currentView === "month" && (
+        <>
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              <div key={day} className="text-center font-medium py-2">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: monthStart.getDay() }).map((_, index) => (
+              <div key={`empty-start-${index}`} className="h-24 sm:h-32 bg-muted/20 rounded-md"></div>
+            ))}
+
+            {monthDays.map((day) => (
+              <CalendarDay
+                key={day.toString()}
+                date={day}
+                isToday={isToday(day)}
+                isCurrentMonth={isSameMonth(day, currentDate)}
+                contentItems={getContentForDate(day)}
+                onClick={() => handleDayClick(day)}
+              />
+            ))}
+
+            {Array.from({ length: 6 - monthEnd.getDay() }).map((_, index) => (
+              <div key={`empty-end-${index}`} className="h-24 sm:h-32 bg-muted/20 rounded-md"></div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {currentView === "year" && (
+        <YearView year={currentDate.getFullYear()} contentItems={contentItems} onDayClick={handleDayClick} />
+      )}
+
+      {selectedDate && (
+        <ContentDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          onAddContent={handleAddContent}
+          selectedDate={selectedDate}
+        />
+      )}
     </div>
-  );
+  )
 }
